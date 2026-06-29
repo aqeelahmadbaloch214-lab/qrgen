@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="google-site-verification" content="b0x9GnXCZXMo65EB08P19smtCtpYdhIpnZUqIjEMcMI"/>
+<meta name="description" content="QRGen by iNexus Lab — Generate stunning custom QR codes for free. No signup required."/>
+<title>QRGen — by iNexus Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+
+:root{
+  --void:#050509;
+  --deep:#08080f;
+  --glass:rgba(255,255,255,0.04);
+  --glass-border:rgba(255,255,255,0.08);
+  --glass-hover:rgba(255,255,255,0.07);
+  --violet:#8b5cf6;
+  --violet-bright:#a78bfa;
+  --cyan:#22d3ee;
+  --pink:#ec4899;
+  --white:#f8fafc;
+  --grey:#94a3b8;
+  --dark-grey:#334155;
+  --success:#10b981;
+  --r:18px;
+  --r-sm:12px;
+  --r-xs:8px;
+}
+
+html{scroll-behavior:smooth;}
+
+body{
+  background:var(--void);
+  color:var(--white);
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ═══ NOISE OVERLAY ═══ */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:0;
+  opacity:0.4;
+}
+
+/* ═══ AURORA BG ═══ */
+.aurora{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  overflow:hidden;
+}
+
+.aurora-blob{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(120px);
+  opacity:0.12;
+  animation:drift 20s infinite alternate ease-in-out;
+}
+
+.aurora-blob:nth-child(1){
+  width:700px;height:700px;
+  background:radial-gradient(circle,#8b5cf6,transparent 70%);
+  top:-200px;left:-200px;
+  animation-duration:25s;
+}
+
+.aurora-blob:nth-child(2){
+  width:600px;height:600px;
+  background:radial-gradient(circle,#22d3ee,transparent 70%);
+  bottom:-150px;right:-150px;
+  animation-duration:30s;
+  animation-delay:-10s;
+}
+
+.aurora-blob:nth-child(3){
+  width:400px;height:400px;
+  background:radial-gradient(circle,#ec4899,transparent 70%);
+  top:40%;left:50%;
+  animation-duration:20s;
+  animation-delay:-5s;
+  opacity:0.07;
+}
+
+@keyframes drift{
+  0%{transform:translate(0,0) scale(1);}
+  50%{transform:translate(60px,40px) scale(1.1);}
+  100%{transform:translate(-40px,80px) scale(0.95);}
+}
+
+/* ═══ LAYOUT ═══ */
+.page{
+  position:relative;
+  z-index:1;
+  max-width:1200px;
+  margin:0 auto;
+  padding:0 24px 100px;
+}
+
+/* ═══ NAV ═══ */
+nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:28px 0 20px;
+  position:relative;
+}
+
+nav::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--glass-border),transparent);
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  text-decoration:none;
+}
+
+.brand-mark{
+  width:40px;height:40px;
+  background:linear-gradient(135deg,var(--violet),var(--cyan));
+  border-radius:11px;
+  display:grid;
+  place-items:center;
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  font-weight:500;
+  color:#fff;
+  box-shadow:0 0 30px rgba(139,92,246,0.5),0 0 60px rgba(139,92,246,0.2);
+  position:relative;
+  overflow:hidden;
+}
+
+.brand-mark::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.2),transparent);
+}
+
+.brand-name{
+  font-family:'Syne',sans-serif;
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:-0.5px;
+  color:var(--white);
+}
+
+.brand-name em{
+  font-style:normal;
+  background:linear-gradient(90deg,var(--violet-bright),var(--cyan));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.nav-right{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.nav-chip{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--violet-bright);
+  background:rgba(139,92,246,0.1);
+  border:1px solid rgba(139,92,246,0.25);
+  padding:6px 14px;
+  border-radius:99px;
+}
+
+.nav-studio{
+  font-size:12px;
+  color:var(--grey);
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* ═══ HERO ═══ */
+.hero{
+  padding:80px 0 64px;
+  text-align:center;
+  position:relative;
+}
+
+.hero-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--cyan);
+  margin-bottom:28px;
+  padding:8px 18px;
+  background:rgba(34,211,238,0.06);
+  border:1px solid rgba(34,211,238,0.2);
+  border-radius:99px;
+}
+
+.hero-dot{
+  width:7px;height:7px;
+  border-radius:50%;
+  background:var(--cyan);
+  animation:blink 2s infinite;
+  box-shadow:0 0 8px var(--cyan);
+}
+
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
+
+.hero-h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(48px,9vw,96px);
+  font-weight:800;
+  line-height:0.95;
+  letter-spacing:-3px;
+  margin-bottom:24px;
+  color:var(--white);
+}
+
+.hero-h1 .gradient-text{
+  background:linear-gradient(135deg,var(--violet-bright) 0%,var(--cyan) 50%,var(--pink) 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  display:block;
+}
+
+.hero-sub{
+  font-size:17px;
+  color:var(--grey);
+  max-width:500px;
+  margin:0 auto 40px;
+  line-height:1.7;
+  font-weight:300;
+}
+
+.hero-badges{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  flex-wrap:wrap;
+}
+
+.hero-badge{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:13px;
+  color:var(--grey);
+  font-weight:500;
+}
+
+.hero-badge-icon{
+  width:20px;height:20px;
+  background:rgba(139,92,246,0.15);
+  border-radius:5px;
+  display:grid;
+  place-items:center;
+  font-size:11px;
+}
+
+/* ═══ SCROLL INDICATOR ═══ */
+.scroll-hint{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  margin-top:40px;
+  opacity:0.3;
+  animation:fadeInUp 1s 1s both;
+}
+
+.scroll-line{
+  width:1px;height:40px;
+  background:linear-gradient(var(--violet),transparent);
+  animation:scrollPulse 2s infinite;
+}
+
+@keyframes scrollPulse{
+  0%{opacity:0;transform:scaleY(0);transform-origin:top;}
+  50%{opacity:1;transform:scaleY(1);}
+  100%{opacity:0;transform:scaleY(0);transform-origin:bottom;}
+}
+
+/* ═══ TOOL SECTION ═══ */
+.tool-wrap{
+  display:grid;
+  grid-template-columns:1fr 380px;
+  gap:24px;
+  align-items:start;
+}
+
+/* ═══ GLASS CARD ═══ */
+.glass-card{
+  background:rgba(8,8,15,0.6);
+  border:1px solid var(--glass-border);
+  border-radius:24px;
+  backdrop-filter:blur(40px);
+  -webkit-backdrop-filter:blur(40px);
+  overflow:hidden;
+  position:relative;
+}
+
+.glass-card::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,rgba(139,92,246,0.04),transparent 60%);
+  pointer-events:none;
+}
+
+/* ═══ LEFT PANEL ═══ */
+.panel-l{padding:36px;}
+
+/* TYPE SELECTOR */
+.section-eyebrow{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--grey);
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.section-eyebrow::before{
+  content:'';
+  width:16px;height:1px;
+  background:var(--violet);
+}
+
+.type-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-bottom:32px;
+}
+
+.type-btn{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  padding:14px 8px;
+  border-radius:var(--r-sm);
+  border:1px solid var(--glass-border);
+  background:var(--glass);
+  color:var(--grey);
+  cursor:pointer;
+  transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  position:relative;
+  overflow:hidden;
+  font-family:'DM Sans',sans-serif;
+}
+
+.type-btn::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,var(--violet),var(--cyan));
+  opacity:0;
+  transition:opacity 0.25s;
+}
+
+.type-btn:hover{
+  border-color:rgba(139,92,246,0.4);
+  color:var(--white);
+  transform:translateY(-2px);
+}
+
+.type-btn.active{
+  border-color:rgba(139,92,246,0.6);
+  color:var(--white);
+  box-shadow:0 0 20px rgba(139,92,246,0.2),0 4px 20px rgba(0,0,0,0.4);
+}
+
+.type-btn.active::before{opacity:0.12;}
+
+.type-icon{
+  font-size:18px;
+  position:relative;
+  z-index:1;
+  transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.type-btn:hover .type-icon,.type-btn.active .type-icon{transform:scale(1.2);}
+
+.type-label-text{
+  font-size:10px;
+  font-weight:500;
+  letter-spacing:0.5px;
+  position:relative;
+  z-index:1;
+}
+
+/* FIELDS */
+.fields-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  margin-bottom:32px;
+  animation:fadeSlide 0.3s ease;
+}
+
+@keyframes fadeSlide{
+  from{opacity:0;transform:translateY(8px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+.field-item{display:flex;flex-direction:column;gap:8px;}
+
+.field-lbl{
+  font-size:11px;
+  font-weight:500;
+  color:var(--grey);
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  font-family:'JetBrains Mono',monospace;
+}
+
+.field-inp{
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r-xs);
+  color:var(--white);
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  padding:14px 18px;
+  width:100%;
+  outline:none;
+  transition:all 0.2s;
+}
+
+.field-inp:focus{
+  border-color:rgba(139,92,246,0.6);
+  background:rgba(139,92,246,0.05);
+  box-shadow:0 0 0 4px rgba(139,92,246,0.08);
+}
+
+.field-inp::placeholder{color:rgba(148,163,184,0.4);}
+
+textarea.field-inp{resize:none;height:90px;line-height:1.5;}
+
+select.field-inp{cursor:pointer;appearance:none;}
+
+/* DIVIDER */
+.divider{
+  border:none;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--glass-border),transparent);
+  margin:28px 0;
+}
+
+/* CUSTOMIZE */
+.customize-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-bottom:20px;
+}
+
+.clr-group{display:flex;flex-direction:column;gap:8px;}
+
+.clr-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r-xs);
+  padding:11px 14px;
+  transition:border-color 0.2s;
+}
+
+.clr-row:focus-within{border-color:rgba(139,92,246,0.5);}
+
+.clr-swatch{
+  width:26px;height:26px;
+  border-radius:7px;
+  border:2px solid rgba(255,255,255,0.15);
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+  flex-shrink:0;
+  transition:transform 0.2s;
+}
+
+.clr-swatch:hover{transform:scale(1.1);}
+
+.clr-swatch input[type=color]{
+  position:absolute;
+  inset:-6px;
+  width:calc(100% + 12px);
+  height:calc(100% + 12px);
+  border:none;
+  cursor:pointer;
+  opacity:0;
+}
+
+.clr-hex{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  color:var(--white);
+  background:none;
+  border:none;
+  outline:none;
+  width:80px;
+}
+
+/* SLIDER */
+.slider-wrap{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:20px;
+}
+
+.slider-track{flex:1;position:relative;}
+
+input[type=range]{
+  -webkit-appearance:none;
+  width:100%;
+  height:3px;
+  border-radius:99px;
+  background:rgba(255,255,255,0.08);
+  outline:none;
+  cursor:pointer;
+}
+
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:20px;height:20px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--violet),var(--cyan));
+  box-shadow:0 0 14px rgba(139,92,246,0.6);
+  cursor:pointer;
+  transition:transform 0.2s;
+}
+
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
+
+.slider-val{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  color:var(--violet-bright);
+  min-width:48px;
+  text-align:right;
+}
+
+/* ERROR LEVEL */
+.elevel-row{
+  display:flex;
+  gap:8px;
+  margin-bottom:20px;
+}
+
+.elevel-btn{
+  flex:1;
+  padding:10px;
+  text-align:center;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  font-weight:500;
+  border-radius:var(--r-xs);
+  border:1px solid var(--glass-border);
+  background:var(--glass);
+  color:var(--grey);
+  cursor:pointer;
+  transition:all 0.2s;
+}
+
+.elevel-btn:hover{border-color:rgba(139,92,246,0.3);color:var(--white);}
+
+.elevel-btn.active{
+  background:rgba(139,92,246,0.15);
+  border-color:rgba(139,92,246,0.5);
+  color:var(--violet-bright);
+  box-shadow:0 0 12px rgba(139,92,246,0.15);
+}
+
+/* LOGO UPLOAD */
+.logo-drop{
+  border:1.5px dashed rgba(255,255,255,0.1);
+  border-radius:var(--r-sm);
+  padding:20px;
+  text-align:center;
+  cursor:pointer;
+  transition:all 0.25s;
+  position:relative;
+  background:var(--glass);
+}
+
+.logo-drop:hover{
+  border-color:rgba(139,92,246,0.4);
+  background:rgba(139,92,246,0.05);
+}
+
+.logo-drop input{
+  position:absolute;inset:0;
+  opacity:0;cursor:pointer;width:100%;height:100%;
+}
+
+.logo-drop-icon{font-size:24px;margin-bottom:8px;opacity:0.5;}
+
+.logo-drop-text{font-size:13px;color:var(--grey);}
+.logo-drop-text span{color:var(--violet-bright);}
+
+/* ═══ RIGHT PANEL ═══ */
+.panel-r{
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  position:sticky;
+  top:24px;
+}
+
+/* QR CARD */
+.qr-card{
+  background:rgba(8,8,15,0.7);
+  border:1px solid var(--glass-border);
+  border-radius:24px;
+  backdrop-filter:blur(40px);
+  padding:32px 28px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:20px;
+  position:relative;
+  overflow:hidden;
+}
+
+.qr-card::before{
+  content:'';
+  position:absolute;
+  top:-60px;left:50%;
+  transform:translateX(-50%);
+  width:200px;height:200px;
+  background:radial-gradient(circle,rgba(139,92,246,0.15),transparent 70%);
+  pointer-events:none;
+}
+
+.qr-preview-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--grey);
+  align-self:flex-start;
+}
+
+/* QR FRAME */
+.qr-frame{
+  width:260px;height:260px;
+  border-radius:20px;
+  background:#ffffff;
+  display:grid;
+  place-items:center;
+  position:relative;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 20px 60px rgba(0,0,0,0.6),
+    0 0 80px rgba(139,92,246,0.12);
+  transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  overflow:hidden;
+}
+
+.qr-frame:hover{
+  transform:scale(1.02) translateY(-4px);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.1),
+    0 32px 80px rgba(0,0,0,0.7),
+    0 0 120px rgba(139,92,246,0.2);
+}
+
+#qr-output{
+  display:grid;
+  place-items:center;
+  width:100%;height:100%;
+}
+
+#qr-output canvas,#qr-output img{
+  max-width:240px!important;
+  max-height:240px!important;
+}
+
+.qr-empty{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+}
+
+.qr-empty-grid{
+  display:grid;
+  grid-template-columns:repeat(5,18px);
+  grid-template-rows:repeat(5,18px);
+  gap:3px;
+  opacity:0.15;
+}
+
+.qr-cell{
+  border-radius:3px;
+  background:#1a1a2e;
+}
+
+.qr-empty-text{
+  font-size:11px;
+  color:#9ca3af;
+  font-family:'JetBrains Mono',monospace;
+  text-align:center;
+}
+
+.logo-overlay{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:52px;height:52px;
+  background:white;
+  border-radius:12px;
+  padding:4px;
+  display:none;
+  place-items:center;
+  box-shadow:0 4px 16px rgba(0,0,0,0.25);
+  z-index:2;
+}
+
+.logo-overlay img{width:100%;height:100%;object-fit:contain;border-radius:8px;}
+
+/* QR META */
+.qr-meta{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+}
+
+.qr-type-pill{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:4px 12px;
+  border-radius:99px;
+  background:rgba(139,92,246,0.12);
+  border:1px solid rgba(139,92,246,0.3);
+  color:var(--violet-bright);
+}
+
+.qr-status-text{
+  font-size:12px;
+  color:var(--grey);
+  margin-left:auto;
+}
+
+.qr-status-text.ready{color:var(--success);}
+
+/* GENERATE BTN */
+.btn-gen{
+  width:100%;
+  padding:16px;
+  border-radius:var(--r-sm);
+  border:none;
+  background:linear-gradient(135deg,var(--violet) 0%,#6366f1 50%,var(--cyan) 100%);
+  background-size:200% 200%;
+  color:#fff;
+  font-family:'Syne',sans-serif;
+  font-size:15px;
+  font-weight:700;
+  letter-spacing:0.5px;
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+  transition:all 0.3s;
+  box-shadow:0 4px 24px rgba(139,92,246,0.35);
+}
+
+.btn-gen::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);
+}
+
+.btn-gen:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 40px rgba(139,92,246,0.5);
+  background-position:right center;
+}
+
+.btn-gen:active{transform:translateY(0) scale(0.98);}
+
+.btn-gen-inner{
+  position:relative;
+  z-index:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+/* DOWNLOAD CARD */
+.dl-card{
+  background:rgba(8,8,15,0.7);
+  border:1px solid var(--glass-border);
+  border-radius:20px;
+  backdrop-filter:blur(40px);
+  padding:24px;
+}
+
+.dl-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--grey);
+  margin-bottom:14px;
+  display:block;
+}
+
+.dl-btns{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.btn-dl{
+  padding:14px 8px;
+  border-radius:var(--r-xs);
+  border:1px solid var(--glass-border);
+  background:var(--glass);
+  color:var(--grey);
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  font-weight:500;
+  cursor:pointer;
+  transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+}
+
+.btn-dl .dl-icon{font-size:16px;}
+
+.btn-dl:hover:not(:disabled){
+  border-color:rgba(139,92,246,0.5);
+  background:rgba(139,92,246,0.1);
+  color:var(--violet-bright);
+  transform:translateY(-3px);
+  box-shadow:0 8px 20px rgba(139,92,246,0.2);
+}
+
+.btn-dl:disabled{opacity:0.25;cursor:not-allowed;}
+
+/* ═══ FEATURES STRIP ═══ */
+.features{
+  margin-top:64px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+}
+
+.feat-card{
+  background:rgba(8,8,15,0.5);
+  border:1px solid var(--glass-border);
+  border-radius:20px;
+  padding:28px 24px;
+  position:relative;
+  overflow:hidden;
+  transition:all 0.3s;
+  backdrop-filter:blur(20px);
+}
+
+.feat-card::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(139,92,246,0.4),transparent);
+  opacity:0;
+  transition:opacity 0.3s;
+}
+
+.feat-card:hover{
+  border-color:rgba(139,92,246,0.3);
+  transform:translateY(-4px);
+}
+
+.feat-card:hover::before{opacity:1;}
+
+.feat-icon{
+  font-size:28px;
+  margin-bottom:14px;
+  display:block;
+}
+
+.feat-title{
+  font-family:'Syne',sans-serif;
+  font-size:15px;
+  font-weight:700;
+  color:var(--white);
+  margin-bottom:8px;
+}
+
+.feat-desc{
+  font-size:13px;
+  color:var(--grey);
+  line-height:1.6;
+}
+
+/* ═══ FOOTER ═══ */
+footer{
+  margin-top:80px;
+  padding-top:32px;
+  border-top:1px solid var(--glass-border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:16px;
+}
+
+.footer-brand{
+  font-family:'Syne',sans-serif;
+  font-size:13px;
+  font-weight:700;
+  color:var(--grey);
+}
+
+.footer-brand span{
+  background:linear-gradient(90deg,var(--violet-bright),var(--cyan));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.footer-copy{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  color:var(--dark-grey);
+}
+
+/* ═══ TOAST ═══ */
+.toast{
+  position:fixed;
+  bottom:40px;left:50%;
+  transform:translateX(-50%) translateY(120px);
+  background:rgba(8,8,15,0.95);
+  border:1px solid rgba(16,185,129,0.3);
+  color:var(--success);
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  letter-spacing:0.5px;
+  padding:14px 28px;
+  border-radius:99px;
+  backdrop-filter:blur(20px);
+  transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  z-index:999;
+  white-space:nowrap;
+  box-shadow:0 8px 40px rgba(0,0,0,0.5);
+}
+
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.error{color:#f87171;border-color:rgba(248,113,113,0.3);}
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes fadeInUp{
+  from{opacity:0;transform:translateY(24px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+.fade-up{animation:fadeInUp 0.6s ease both;}
+.fade-up-1{animation-delay:0.1s;}
+.fade-up-2{animation-delay:0.2s;}
+.fade-up-3{animation-delay:0.3s;}
+
+/* ═══ GENERATING PULSE ═══ */
+@keyframes genPulse{
+  0%,100%{box-shadow:0 0 0 1px rgba(255,255,255,0.06),0 20px 60px rgba(0,0,0,0.6),0 0 80px rgba(139,92,246,0.12);}
+  50%{box-shadow:0 0 0 3px rgba(139,92,246,0.4),0 20px 60px rgba(0,0,0,0.6),0 0 120px rgba(139,92,246,0.4);}
+}
+
+.qr-frame.generating{animation:genPulse 0.8s ease 3;}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:900px){
+  .tool-wrap{grid-template-columns:1fr;}
+  .panel-r{position:static;}
+  .features{grid-template-columns:repeat(2,1fr);}
+  .type-grid{grid-template-columns:repeat(4,1fr);}
+}
+
+@media(max-width:600px){
+  .hero-h1{letter-spacing:-2px;}
+  .features{grid-template-columns:1fr 1fr;}
+  .customize-grid{grid-template-columns:1fr;}
+  nav{flex-wrap:wrap;gap:12px;}
+  .nav-studio{display:none;}
+  .type-grid{grid-template-columns:repeat(4,1fr);}
+}
+
+@media(max-width:420px){
+  .type-grid{grid-template-columns:repeat(4,1fr);}
+  .features{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- AURORA -->
+<div class="aurora">
+  <div class="aurora-blob"></div>
+  <div class="aurora-blob"></div>
+  <div class="aurora-blob"></div>
+</div>
+
+<div class="page">
+
+  <!-- NAV -->
+  <nav class="fade-up">
+    <a class="brand" href="#">
+      <div class="brand-mark">QR</div>
+      <span class="brand-name">QRG<em>en</em></span>
+    </a>
+    <div class="nav-right">
+      <span class="nav-chip">Free · No Signup</span>
+      <span class="nav-studio">by iNexus Lab</span>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag fade-up fade-up-1">
+      <span class="hero-dot"></span>
+      QR Code Generator
+    </div>
+    <h1 class="hero-h1 fade-up fade-up-2">
+      Generate any QR.
+      <span class="gradient-text">Your way.</span>
+    </h1>
+    <p class="hero-sub fade-up fade-up-3">Craft stunning, custom QR codes for anything. URLs, WiFi, contacts — fully customizable and free.</p>
+    <div class="hero-badges fade-up fade-up-3">
+      <div class="hero-badge"><div class="hero-badge-icon">⚡</div>Instant preview</div>
+      <div class="hero-badge"><div class="hero-badge-icon">🎨</div>Full customization</div>
+      <div class="hero-badge"><div class="hero-badge-icon">📥</div>PNG · JPG · SVG</div>
+      <div class="hero-badge"><div class="hero-badge-icon">🔒</div>No data stored</div>
+    </div>
+    <div class="scroll-hint">
+      <div class="scroll-line"></div>
+    </div>
+  </div>
+
+  <!-- TOOL -->
+  <div class="tool-wrap">
+
+    <!-- LEFT -->
+    <div class="glass-card panel-l fade-up">
+
+      <!-- TYPE -->
+      <div class="section-eyebrow">QR Type</div>
+      <div class="type-grid" id="typeGrid">
+        <button class="type-btn active" data-type="url">
+          <span class="type-icon">🔗</span>
+          <span class="type-label-text">URL</span>
+        </button>
+        <button class="type-btn" data-type="text">
+          <span class="type-icon">📝</span>
+          <span class="type-label-text">Text</span>
+        </button>
+        <button class="type-btn" data-type="email">
+          <span class="type-icon">📧</span>
+          <span class="type-label-text">Email</span>
+        </button>
+        <button class="type-btn" data-type="phone">
+          <span class="type-icon">📞</span>
+          <span class="type-label-text">Phone</span>
+        </button>
+        <button class="type-btn" data-type="wifi">
+          <span class="type-icon">📶</span>
+          <span class="type-label-text">WiFi</span>
+        </button>
+        <button class="type-btn" data-type="vcard">
+          <span class="type-icon">👤</span>
+          <span class="type-label-text">Contact</span>
+        </button>
+        <button class="type-btn" data-type="sms">
+          <span class="type-icon">💬</span>
+          <span class="type-label-text">SMS</span>
+        </button>
+        <button class="type-btn" data-type="location">
+          <span class="type-icon">📍</span>
+          <span class="type-label-text">Location</span>
+        </button>
+      </div>
+
+      <!-- FIELDS -->
+      <div class="section-eyebrow">Content</div>
+      <div id="fieldsArea" class="fields-wrap"></div>
+
+      <hr class="divider"/>
+
+      <!-- COLORS -->
+      <div class="section-eyebrow">Colors</div>
+      <div class="customize-grid">
+        <div class="clr-group">
+          <span class="field-lbl">Foreground</span>
+          <div class="clr-row">
+            <div class="clr-swatch" id="fgSwatch" style="background:#000000">
+              <input type="color" id="fgPicker" value="#000000"/>
+            </div>
+            <input class="clr-hex" id="fgHex" value="#000000" maxlength="7"/>
+          </div>
+        </div>
+        <div class="clr-group">
+          <span class="field-lbl">Background</span>
+          <div class="clr-row">
+            <div class="clr-swatch" id="bgSwatch" style="background:#ffffff">
+              <input type="color" id="bgPicker" value="#ffffff"/>
+            </div>
+            <input class="clr-hex" id="bgHex" value="#ffffff" maxlength="7"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIZE -->
+      <div class="section-eyebrow" style="margin-bottom:14px">Size</div>
+      <div class="slider-wrap">
+        <span class="field-lbl" style="min-width:32px">Px</span>
+        <div class="slider-track">
+          <input type="range" id="sizeRange" min="100" max="400" value="200"/>
+        </div>
+        <span class="slider-val" id="sizeDisp">200px</span>
+      </div>
+
+      <!-- ERROR LEVEL -->
+      <div class="section-eyebrow" style="margin-bottom:12px">Error Correction</div>
+      <div class="elevel-row" id="eLevelRow">
+        <button class="elevel-btn active" data-lvl="L">L</button>
+        <button class="elevel-btn" data-lvl="M">M</button>
+        <button class="elevel-btn" data-lvl="Q">Q</button>
+        <button class="elevel-btn" data-lvl="H">H</button>
+      </div>
+
+      <hr class="divider"/>
+
+      <!-- LOGO -->
+      <div class="section-eyebrow">Center Logo</div>
+      <div class="logo-drop" id="logoDrop">
+        <input type="file" id="logoFile" accept="image/*"/>
+        <div class="logo-drop-icon">🖼️</div>
+        <div class="logo-drop-text" id="logoDropText">
+          <span>Click to upload</span> logo or icon<br/>
+          <small style="color:var(--dark-grey);font-size:11px;">Use H error level for best results</small>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="panel-r">
+
+      <!-- QR CARD -->
+      <div class="qr-card glass-card fade-up fade-up-1">
+        <span class="qr-preview-label">Live Preview</span>
+
+        <div class="qr-frame" id="qrFrame">
+          <div id="qr-output">
+            <div class="qr-empty">
+              <div class="qr-empty-grid" id="emptyGrid"></div>
+              <div class="qr-empty-text">Type something<br/>to preview</div>
+            </div>
+          </div>
+          <div class="logo-overlay" id="logoOverlay">
+            <img id="logoImg" src="" alt=""/>
+          </div>
+        </div>
+
+        <div class="qr-meta">
+          <span class="qr-type-pill" id="typePill">URL</span>
+          <span class="qr-status-text" id="statusText">Waiting...</span>
+        </div>
+
+        <button class="btn-gen" id="btnGen">
+          <div class="btn-gen-inner">
+            <span>⚡</span>
+            <span>Generate QR Code</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- DOWNLOAD CARD -->
+      <div class="dl-card glass-card fade-up fade-up-2">
+        <span class="dl-label">Download Format</span>
+        <div class="dl-btns">
+          <button class="btn-dl" id="dlPng" disabled>
+            <span class="dl-icon">🖼️</span>PNG
+          </button>
+          <button class="btn-dl" id="dlJpg" disabled>
+            <span class="dl-icon">📸</span>JPG
+          </button>
+          <button class="btn-dl" id="dlSvg" disabled>
+            <span class="dl-icon">✨</span>SVG
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="features">
+    <div class="feat-card fade-up">
+      <span class="feat-icon">⚡</span>
+      <div class="feat-title">Instant Generation</div>
+      <div class="feat-desc">Generate QR codes in milliseconds. No waiting, no loading screens.</div>
+    </div>
+    <div class="feat-card fade-up fade-up-1">
+      <span class="feat-icon">🎨</span>
+      <div class="feat-title">Full Customization</div>
+      <div class="feat-desc">Colors, sizes, logos — make every QR code uniquely yours.</div>
+    </div>
+    <div class="feat-card fade-up fade-up-2">
+      <span class="feat-icon">📥</span>
+      <div class="feat-title">Multiple Formats</div>
+      <div class="feat-desc">Download in PNG, JPG, or SVG. Perfect quality for any use.</div>
+    </div>
+    <div class="feat-card fade-up fade-up-3">
+      <span class="feat-icon">🔒</span>
+      <div class="feat-title">100% Private</div>
+      <div class="feat-desc">Everything runs in your browser. Zero data sent to any server.</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-brand">
+      Built by <span>iNexus Lab</span> — QRGen
+    </div>
+    <div class="footer-copy">© 2026 · Free forever · No signup required</div>
+  </footer>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── EMPTY QR GRID ──
+(function(){
+  const grid = document.getElementById('emptyGrid');
+  const pattern = [1,1,1,0,1, 1,0,1,0,1, 1,1,1,0,0, 0,0,0,1,1, 1,0,0,1,1];
+  pattern.forEach(v => {
+    const c = document.createElement('div');
+    c.className = 'qr-cell';
+    c.style.background = v ? '#1a1a2e' : 'transparent';
+    grid.appendChild(c);
+  });
+})();
+
+// ── FIELD DEFINITIONS ──
+const FIELDS = {
+  url:[{id:'url',label:'Website URL',ph:'https://example.com',type:'url'}],
+  text:[{id:'text',label:'Text Content',ph:'Type anything...',type:'textarea'}],
+  email:[
+    {id:'email',label:'Email Address',ph:'name@example.com',type:'email'},
+    {id:'subject',label:'Subject',ph:'Hello!',type:'text'},
+    {id:'body',label:'Body',ph:'Your message...',type:'textarea'}
+  ],
+  phone:[{id:'phone',label:'Phone Number',ph:'+92 300 0000000',type:'tel'}],
+  wifi:[
+    {id:'ssid',label:'Network Name',ph:'MyWiFi',type:'text'},
+    {id:'pass',label:'Password',ph:'password123',type:'password'},
+    {id:'security',label:'Security',ph:'',type:'select',opts:['WPA','WEP','None']}
+  ],
+  vcard:[
+    {id:'name',label:'Full Name',ph:'John Doe',type:'text'},
+    {id:'org',label:'Organization',ph:'Company',type:'text'},
+    {id:'phone',label:'Phone',ph:'+92 300 0000000',type:'tel'},
+    {id:'email',label:'Email',ph:'name@email.com',type:'email'},
+    {id:'url',label:'Website',ph:'https://example.com',type:'url'}
+  ],
+  sms:[
+    {id:'phone',label:'Phone Number',ph:'+92 300 0000000',type:'tel'},
+    {id:'msg',label:'Message',ph:'Your message...',type:'textarea'}
+  ],
+  location:[
+    {id:'lat',label:'Latitude',ph:'24.8607',type:'text'},
+    {id:'lng',label:'Longitude',ph:'67.0011',type:'text'}
+  ]
+};
+
+// ── STATE ──
+let curType = 'url', errLvl = 'L', logoData = null, generated = false;
+
+// ── RENDER FIELDS ──
+function renderFields(type){
+  const area = document.getElementById('fieldsArea');
+  area.innerHTML = '';
+  FIELDS[type].forEach(f => {
+    const wrap = document.createElement('div');
+    wrap.className = 'field-item';
+    const lbl = document.createElement('label');
+    lbl.className = 'field-lbl';
+    lbl.textContent = f.label;
+    wrap.appendChild(lbl);
+    let el;
+    if(f.type === 'textarea'){
+      el = document.createElement('textarea');
+      el.className = 'field-inp';
+      el.placeholder = f.ph;
+      el.rows = 3;
+    } else if(f.type === 'select'){
+      el = document.createElement('select');
+      el.className = 'field-inp';
+      f.opts.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o; opt.textContent = o;
+        el.appendChild(opt);
+      });
+    } else {
+      el = document.createElement('input');
+      el.type = f.type;
+      el.className = 'field-inp';
+      el.placeholder = f.ph;
+    }
+    el.id = 'f_' + f.id;
+    wrap.appendChild(el);
+    area.appendChild(wrap);
+  });
+}
+
+// ── BUILD QR DATA ──
+function buildData(type){
+  const g = id => { const el = document.getElementById('f_'+id); return el ? el.value.trim() : ''; };
+  switch(type){
+    case 'url': return g('url') || null;
+    case 'text': return g('text') || null;
+    case 'email': {
+      const e = g('email'); if(!e) return null;
+      const p = [];
+      if(g('subject')) p.push('subject='+encodeURIComponent(g('subject')));
+      if(g('body')) p.push('body='+encodeURIComponent(g('body')));
+      return 'mailto:'+e+(p.length?'?'+p.join('&'):'');
+    }
+    case 'phone': return g('phone') ? 'tel:'+g('phone') : null;
+    case 'wifi': {
+      const s = g('ssid'); if(!s) return null;
+      return `WIFI:T:${g('security')};S:${s};P:${g('pass')};;`;
+    }
+    case 'vcard': {
+      const n = g('name'); if(!n) return null;
+      return `BEGIN:VCARD\nVERSION:3.0\nFN:${n}\nORG:${g('org')}\nTEL:${g('phone')}\nEMAIL:${g('email')}\nURL:${g('url')}\nEND:VCARD`;
+    }
+    case 'sms': {
+      const p = g('phone'); if(!p) return null;
+      return 'sms:'+p+(g('msg')? '?body='+encodeURIComponent(g('msg')) :'');
+    }
+    case 'location': {
+      const lat=g('lat'),lng=g('lng');
+      if(!lat||!lng) return null;
+      return `geo:${lat},${lng}`;
+    }
+  }
+  return null;
+}
+
+// ── GENERATE ──
+function generate(){
+  const data = buildData(curType);
+  if(!data){ showToast('⚠ Fill in the required fields', true); return; }
+
+  const size = parseInt(document.getElementById('sizeRange').value);
+  const fg = document.getElementById('fgPicker').value;
+  const bg = document.getElementById('bgPicker').value;
+  const frame = document.getElementById('qrFrame');
+  const out = document.getElementById('qr-output');
+
+  frame.classList.add('generating');
+  out.innerHTML = '';
+
+  setTimeout(() => {
+    try {
+      new QRCode(out, {
+        text: data,
+        width: Math.min(size, 240),
+        height: Math.min(size, 240),
+        colorDark: fg,
+        colorLight: bg,
+        correctLevel: QRCode.CorrectLevel[errLvl]
+      });
+
+      if(logoData){
+        const ov = document.getElementById('logoOverlay');
+        document.getElementById('logoImg').src = logoData;
+        ov.style.display = 'grid';
+      }
+
+      generated = true;
+      document.getElementById('statusText').textContent = '✓ Ready to download';
+      document.getElementById('statusText').className = 'qr-status-text ready';
+      ['dlPng','dlJpg','dlSvg'].forEach(id => document.getElementById(id).disabled = false);
+      showToast('✓ QR Code generated!');
+    } catch(e) {
+      showToast('Error — try simpler content', true);
+    }
+    frame.classList.remove('generating');
+  }, 80);
+}
+
+// ── DOWNLOAD ──
+function getCanvas(){ return document.querySelector('#qr-output canvas'); }
+
+function dlPNG(){
+  const c = getCanvas(); if(!c) return;
+  const a = document.createElement('a');
+  a.download = 'QRGen-code.png';
+  a.href = c.toDataURL('image/png');
+  a.click();
+  showToast('✓ PNG downloaded!');
+}
+
+function dlJPG(){
+  const c = getCanvas(); if(!c) return;
+  const tmp = document.createElement('canvas');
+  tmp.width = c.width; tmp.height = c.height;
+  const tc = tmp.getContext('2d');
+  tc.fillStyle = '#fff'; tc.fillRect(0,0,tmp.width,tmp.height);
+  tc.drawImage(c,0,0);
+  const a = document.createElement('a');
+  a.download = 'QRGen-code.jpg';
+  a.href = tmp.toDataURL('image/jpeg',0.95);
+  a.click();
+  showToast('✓ JPG downloaded!');
+}
+
+function dlSVG(){
+  const c = getCanvas(); if(!c) return;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${c.width}" height="${c.height}"><image href="${c.toDataURL('image/png')}" width="${c.width}" height="${c.height}"/></svg>`;
+  const blob = new Blob([svg],{type:'image/svg+xml'});
+  const a = document.createElement('a');
+  a.download = 'QRGen-code.svg';
+  a.href = URL.createObjectURL(blob);
+  a.click();
+  showToast('✓ SVG downloaded!');
+}
+
+// ── TOAST ──
+function showToast(msg, isErr=false){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isErr ? ' error' : '');
+  void t.offsetWidth;
+  t.classList.add('show');
+  clearTimeout(t._to);
+  t._to = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── COLOR SYNC ──
+function syncColor(pickerId, swatchId, hexId){
+  const picker = document.getElementById(pickerId);
+  const swatch = document.getElementById(swatchId);
+  const hex = document.getElementById(hexId);
+  picker.addEventListener('input', () => {
+    swatch.style.background = picker.value;
+    hex.value = picker.value;
+  });
+  hex.addEventListener('input', () => {
+    if(/^#[0-9A-Fa-f]{6}$/.test(hex.value)){
+      picker.value = hex.value;
+      swatch.style.background = hex.value;
+    }
+  });
+}
+
+// ── INIT ──
+renderFields('url');
+
+// Type buttons
+document.getElementById('typeGrid').addEventListener('click', e => {
+  const btn = e.target.closest('.type-btn');
+  if(!btn) return;
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  curType = btn.dataset.type;
+  renderFields(curType);
+  document.getElementById('typePill').textContent = btn.querySelector('.type-label-text').textContent;
+  document.getElementById('qr-output').innerHTML = `<div class="qr-empty"><div class="qr-empty-grid" id="emptyGrid"></div><div class="qr-empty-text">Type something<br/>to preview</div></div>`;
+  document.getElementById('statusText').textContent = 'Waiting...';
+  document.getElementById('statusText').className = 'qr-status-text';
+  document.getElementById('logoOverlay').style.display = 'none';
+  ['dlPng','dlJpg','dlSvg'].forEach(id => document.getElementById(id).disabled = true);
+  generated = false;
+  // rebuild mini grid
+  const g = document.getElementById('emptyGrid');
+  if(g){ const p=[1,1,1,0,1,1,0,1,0,1,1,1,1,0,0,0,0,0,1,1,1,0,0,1,1]; p.forEach(v=>{const c=document.createElement('div');c.className='qr-cell';c.style.background=v?'#1a1a2e':'transparent';g.appendChild(c);}); }
+});
+
+// Error level
+document.getElementById('eLevelRow').addEventListener('click', e => {
+  const btn = e.target.closest('.elevel-btn');
+  if(!btn) return;
+  document.querySelectorAll('.elevel-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  errLvl = btn.dataset.lvl;
+});
+
+// Size
+document.getElementById('sizeRange').addEventListener('input', e => {
+  document.getElementById('sizeDisp').textContent = e.target.value + 'px';
+});
+
+// Colors
+syncColor('fgPicker','fgSwatch','fgHex');
+syncColor('bgPicker','bgSwatch','bgHex');
+
+// Generate
+document.getElementById('btnGen').addEventListener('click', generate);
+
+// Downloads
+document.getElementById('dlPng').addEventListener('click', dlPNG);
+document.getElementById('dlJpg').addEventListener('click', dlJPG);
+document.getElementById('dlSvg').addEventListener('click', dlSVG);
+
+// Logo
+document.getElementById('logoFile').addEventListener('change', e => {
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    logoData = ev.target.result;
+    document.getElementById('logoDropText').innerHTML = '<span>✓ Logo ready</span> — regenerate to apply';
+  };
+  r.readAsDataURL(f);
+});
+</script>
+</body>
+</html>
